@@ -1,0 +1,35 @@
+# Dependencies
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment & Secrets (NEVER COMMIT!)
+.env
+*.env.local
+
+# Generated Data & Models (Regenerated on startup)
+data/food_shelf_life_data.csv
+models/trained_rf_model.joblib
+models/feature_scaler.joblib
+
+# Docker
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/

@@ -1,0 +1,13 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - /app/__pycache__
+      - /app/venv
+    environment:
+      - FLASK_ENV=development
+      - HUGGINGFACE_API_TOKEN=${HUGGINGFACE_API_TOKEN}
+    restart: unless-stopped

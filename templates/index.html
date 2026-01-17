@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Shelf Life Predictor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #13131a;
+            --bg-tertiary: #1a1a24;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --text-muted: #6b6b7b;
+            --accent-green: #00d991;
+            --accent-blue: #4d9fff;
+            --accent-purple: #8b5cf6;
+            --accent-orange: #ff9f43;
+            --accent-red: #ff6b6b;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --shadow-glow: 0 0 40px rgba(77, 159, 255, 0.1);
+            --gradient-primary: linear-gradient(135deg, #4d9fff 0%, #8b5cf6 100%);
+            --gradient-success: linear-gradient(135deg, #00d991 0%, #00b377 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 3rem 0 2rem;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: var(--gradient-primary);
+            border-radius: 2px;
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(77, 159, 255, 0.3);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-icon {
+            font-size: 1.5rem;
+        }
+
+        /* Upload Zone */
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(77, 159, 255, 0.02);
+        }
+
+        .upload-zone:hover,
+        .upload-zone.dragover {
+            border-color: var(--accent-blue);
+            background: rgba(77, 159, 255, 0.05);
+        }
+
+        .upload-zone.has-image {
+            padding: 1rem;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.6;
+        }
+
+        .upload-text {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-hint {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        #preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+            display: none;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(77, 159, 255, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Range Slider */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(77, 159, 255, 0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .slider-value {
+            min-width: 60px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        /* Select */
+        .form-select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .form-select option {
+            background: var(--bg-secondary);
+        }
+
+        /* Button */
+        .btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(77, 159, 255, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Results */
+        .results-section {
+            display: none;
+        }
+
+        .results-section.visible {
+            display: block;
+        }
+
+        .result-card {
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .classification-result {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .food-icon {
+            font-size: 2.5rem;
+        }
+
+        .food-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .confidence-bar {
+            height: 6px;
+            background: var(--bg-secondary);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .confidence-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Shelf Life Display */
+        .shelf-life-display {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .shelf-life-number {
+            font-size: 4rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .shelf-life-unit {
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: var(--text-secondary);
+            margin-left: 0.5rem;
+        }
+
+        .shelf-life-status {
+            display: inline-block;
+            padding: 0.5rem 1.25rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        .status-excellent {
+            background: rgba(0, 217, 145, 0.15);
+            color: var(--accent-green);
+        }
+
+        .status-good {
+            background: rgba(0, 217, 145, 0.1);
+            color: #4ade80;
+        }
+
+        .status-warning {
+            background: rgba(255, 159, 67, 0.15);
+            color: var(--accent-orange);
+        }
+
+        .status-danger {
+            background: rgba(255, 107, 107, 0.15);
+            color: var(--accent-red);
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading.visible {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 3rem 0 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .footer a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        /* Datalist styling */
+        .food-input-wrapper {
+            position: relative;
+        }
+
+        .edit-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">🍎</div>
+            <h1>Food Shelf Life Predictor</h1>
+            <p class="subtitle">AI-powered freshness estimation using computer vision</p>
+        </header>
+
+        <div class="main-grid">
+            <!-- Left Column: Upload & Settings -->
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="card-icon">📸</span>
+                    Upload Food Image
+                </h2>
+
+                <div class="upload-zone" id="upload-zone">
+                    <input type="file" id="file-input" accept="image/*">
+                    <img id="preview-image" alt="Preview">
+                    <div id="upload-placeholder">
+                        <div class="upload-icon">📤</div>
+                        <p class="upload-text">Drag & drop an image here</p>
+                        <p class="upload-hint">or click to browse • JPG, PNG, WebP</p>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label class="form-label">Detected Food Type</label>
+                    <div class="food-input-wrapper">
+                        <input type="text" id="food-type" class="form-input" placeholder="Upload an image to detect..."
+                            list="food-suggestions">
+                        <datalist id="food-suggestions"></datalist>
+                        <p class="edit-hint">✏️ You can edit this if the detection is incorrect</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Temperature</label>
+                    <div class="slider-container">
+                        <input type="range" id="temperature" class="slider" min="-20" max="35" value="4">
+                        <span class="slider-value" id="temp-value">4°C</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Humidity</label>
+                    <div class="slider-container">
+                        <input type="range" id="humidity" class="slider" min="20" max="95" value="60">
+                        <span class="slider-value" id="humidity-value">60%</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Storage Type</label>
+                    <select id="storage-type" class="form-select">
+                        <option value="refrigerated">🧊 Refrigerated (2-8°C)</option>
+                        <option value="room_temperature">🏠 Room Temperature</option>
+                        <option value="frozen">❄️ Frozen (-18°C)</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary" id="predict-btn" disabled>
+                    Predict Shelf Life
+                </button>
+            </div>
+
+            <!-- Right Column: Results -->
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="card-icon">🔮</span>
+                    Prediction Results
+                </h2>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing image...</p>
+                </div>
+
+                <div id="initial-state" style="text-align: center; padding: 3rem 0; color: var(--text-muted);">
+                    <div style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.3;">👈</div>
+                    <p>Upload an image to get started</p>
+                </div>
+
+                <div class="results-section" id="results">
+                    <div class="result-card">
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.5rem;">Detected Food
+                        </p>
+                        <div class="classification-result">
+                            <span class="food-icon" id="result-icon">🍕</span>
+                            <div>
+                                <div class="food-name" id="result-food">Pizza</div>
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill" id="confidence-bar" style="width: 0%"></div>
+                                </div>
+                                <p class="confidence-text" id="confidence-text">Confidence: 0%</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="result-card">
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.5rem;">Estimated Shelf
+                            Life</p>
+                        <div class="shelf-life-display">
+                            <span class="shelf-life-number" id="shelf-life-days">0</span>
+                            <span class="shelf-life-unit">days</span>
+                            <div>
+                                <span class="shelf-life-status status-good" id="shelf-life-status">Fresh</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="result-card"
+                        style="background: rgba(139, 92, 246, 0.05); border: 1px solid rgba(139, 92, 246, 0.1);">
+                        <p style="color: var(--accent-purple); font-size: 0.85rem; margin-bottom: 0.5rem;">💡 Storage
+                            Tip</p>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;" id="storage-tip">
+                            Keep refrigerated for best results.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>Powered by EfficientNet-B0 • Built with Flask + Vanilla JS</p>
+            <p>Shelf life estimates based on USDA FoodKeeper data & Q10 temperature model</p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM Elements
+        const uploadZone = document.getElementById('upload-zone');
+        const fileInput = document.getElementById('file-input');
+        const previewImage = document.getElementById('preview-image');
+        const uploadPlaceholder = document.getElementById('upload-placeholder');
+        const foodTypeInput = document.getElementById('food-type');
+        const temperatureSlider = document.getElementById('temperature');
+        const humiditySlider = document.getElementById('humidity');
+        const storageSelect = document.getElementById('storage-type');
+        const predictBtn = document.getElementById('predict-btn');
+        const loading = document.getElementById('loading');
+        const initialState = document.getElementById('initial-state');
+        const results = document.getElementById('results');
+        const foodSuggestions = document.getElementById('food-suggestions');
+
+        // State
+        let currentFile = null;
+        let detectedFood = '';
+
+        // Storage type temperature mappings
+        const storageTemperatures = {
+            'refrigerated': 4,
+            'room_temperature': 22,
+            'frozen': -18
+        };
+
+        // Food icon mapping
+        const foodIcons = {
+            'apple': '🍎', 'banana': '🍌', 'bread': '🍞', 'milk': '🥛',
+            'pizza': '🍕', 'hamburger': '🍔', 'hot dog': '🌭', 'sushi': '🍣',
+            'ice cream': '🍦', 'cake': '🎂', 'cookie': '🍪', 'donut': '🍩',
+            'french fries': '🍟', 'taco': '🌮', 'burrito': '🌯', 'salad': '🥗',
+            'steak': '🥩', 'chicken': '🍗', 'fish': '🐟', 'shrimp': '🦐',
+            'pasta': '🍝', 'ramen': '🍜', 'rice': '🍚', 'soup': '🍲',
+            'egg': '🥚', 'cheese': '🧀', 'butter': '🧈', 'yogurt': '🥣',
+            'default': '🍽️'
+        };
+
+        // Initialize
+        async function init() {
+            // Load food suggestions
+            try {
+                const response = await fetch('/api/foods');
+                const data = await response.json();
+                data.foods.forEach(food => {
+                    const option = document.createElement('option');
+                    option.value = food;
+                    foodSuggestions.appendChild(option);
+                });
+            } catch (e) {
+                console.log('Could not load food suggestions');
+            }
+
+            // Set initial temperature based on storage type
+            syncTemperatureWithStorage();
+        }
+
+        // Sync temperature slider with storage type
+        function syncTemperatureWithStorage() {
+            const storage = storageSelect.value;
+            const temp = storageTemperatures[storage];
+            temperatureSlider.value = temp;
+            updateSliderValues();
+        }
+
+        // Get appropriate temperature for current storage type
+        function getStorageTemperature() {
+            return storageTemperatures[storageSelect.value];
+        }
+
+        // Event Listeners
+        uploadZone.addEventListener('click', () => fileInput.click());
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        temperatureSlider.addEventListener('input', () => {
+            updateSliderValues();
+            // Debounce auto-prediction to avoid network spam and UI flickering
+            if (foodTypeInput.value.trim()) {
+                debounce(() => predictShelfLife(true), 300);
+            }
+        });
+
+        humiditySlider.addEventListener('input', () => {
+            updateSliderValues();
+            // Debounce auto-prediction
+            if (foodTypeInput.value.trim()) {
+                debounce(() => predictShelfLife(true), 300);
+            }
+        });
+
+        // Auto-sync temperature when storage type changes and re-predict
+        storageSelect.addEventListener('change', () => {
+            syncTemperatureWithStorage();
+            // Auto-predict if food type is set
+            if (foodTypeInput.value.trim()) {
+                predictShelfLife(false); // reliable update for discrete change
+            }
+        });
+
+        foodTypeInput.addEventListener('input', () => {
+            updatePredictButton();
+        });
+
+        predictBtn.addEventListener('click', predictShelfLife);
+
+        // Functions
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Please upload an image file');
+                return;
+            }
+
+            currentFile = file;
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                previewImage.style.display = 'block';
+                uploadPlaceholder.style.display = 'none';
+                uploadZone.classList.add('has-image');
+
+                // Classify the image
+                classifyImage(file);
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        async function classifyImage(file) {
+            loading.classList.add('visible');
+            initialState.style.display = 'none';
+            results.classList.remove('visible');
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const response = await fetch('/api/classify', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                loading.classList.remove('visible');
+
+                if (data.success) {
+                    detectedFood = data.detected_food;
+                    foodTypeInput.value = detectedFood;
+                    updatePredictButton();
+
+                    // Auto-predict
+                    predictShelfLife();
+                } else {
+                    foodTypeInput.value = '';
+                    foodTypeInput.placeholder = 'Could not detect - please enter manually';
+                    updatePredictButton();
+                }
+            } catch (error) {
+                loading.classList.remove('visible');
+                console.error('Classification error:', error);
+                foodTypeInput.placeholder = 'Error - please enter food type manually';
+            }
+        }
+
+        let debounceTimer;
+        const debounce = (func, delay) => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(func, delay);
+        };
+
+        async function predictShelfLife(silent = false) {
+            const foodType = foodTypeInput.value.trim();
+            if (!foodType) return;
+
+            if (!silent) {
+                loading.classList.add('visible');
+                results.classList.remove('visible');
+                initialState.style.display = 'none';
+            }
+
+            // Use the actual slider value (user can adjust after storage type sets default)
+            const temperature = parseFloat(temperatureSlider.value);
+
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        food_type: foodType,
+                        temperature: temperature,
+                        humidity: parseFloat(humiditySlider.value),
+                        storage_type: storageSelect.value
+                    })
+                });
+
+                const data = await response.json();
+                loading.classList.remove('visible');
+
+                if (data.success) {
+                    displayResults(foodType, data);
+                }
+            } catch (error) {
+                loading.classList.remove('visible');
+                console.error('Prediction error:', error);
+            }
+        }
+
+        function displayResults(foodType, prediction) {
+            results.classList.add('visible');
+
+            // Food name and icon
+            const foodLower = foodType.toLowerCase();
+            let icon = foodIcons.default;
+            for (const [key, emoji] of Object.entries(foodIcons)) {
+                if (foodLower.includes(key)) {
+                    icon = emoji;
+                    break;
+                }
+            }
+
+            document.getElementById('result-icon').textContent = icon;
+            document.getElementById('result-food').textContent = foodType;
+
+            // Confidence
+            const confidence = detectedFood.toLowerCase() === foodLower ? 85 : 60;
+            document.getElementById('confidence-bar').style.width = confidence + '%';
+            document.getElementById('confidence-text').textContent = `Confidence: ${confidence}%`;
+
+            // Shelf life
+            const days = prediction.shelf_life_days;
+            document.getElementById('shelf-life-days').textContent = days;
+
+            const statusEl = document.getElementById('shelf-life-status');
+            statusEl.textContent = prediction.status_text;
+            statusEl.className = 'shelf-life-status status-' + prediction.status;
+
+            // Storage tip - use correct temperature for storage type
+            const storage = storageSelect.value;
+            const temp = getStorageTemperature();
+            let tip = '';
+            if (storage === 'refrigerated') {
+                tip = `Keep refrigerated at ${temp}°C in an airtight container for optimal freshness.`;
+            } else if (storage === 'frozen') {
+                tip = `Frozen at ${temp}°C significantly extends shelf life. Thaw in refrigerator before use.`;
+            } else {
+                tip = `Room temperature (${temp}°C) storage is suitable for short periods. Refrigerate for longer storage.`;
+            }
+            document.getElementById('storage-tip').textContent = tip;
+        }
+
+        function updateSliderValues() {
+            document.getElementById('temp-value').textContent = temperatureSlider.value + '°C';
+            document.getElementById('humidity-value').textContent = humiditySlider.value + '%';
+        }
+
+        function updatePredictButton() {
+            predictBtn.disabled = !foodTypeInput.value.trim();
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+
+</html>

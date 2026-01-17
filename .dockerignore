@@ -1,0 +1,33 @@
+# Git
+.git
+.gitignore
+
+# Environment & Secrets
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+
+# Generated files (will be regenerated in container)
+data/food_shelf_life_data.csv
+models/trained_rf_model.joblib
+models/feature_scaler.joblib
+
+# Documentation
+*.md
+!README.md
+
+# Misc
+*.log
+.DS_Store
+Thumbs.db
