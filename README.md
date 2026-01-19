@@ -36,119 +36,162 @@ The system doesn't just "guess"; it utilizes established food science principles
 
 ---
 
+## ✨ Key Features
+
+- **Hybrid AI Classification**: Uses both Food-101 and ImageNet models for maximum accuracy.
+- **15 Food Categories**: Apple, Banana, Bread, Milk, Pasta, Pizza, Burger, Sushi, Meat, Fish, Egg, Vegetable, Fruit, Rice, Cake.
+- **Dynamic Shelf Life Prediction**: RandomForest model predicts remaining days based on temperature, humidity, and storage type.
+- **Science-Based**: Calculations based on USDA FoodKeeper data and Q10 temperature coefficients.
+- **Interactive Dashboard**: Modern Glassmorphism UI for easy data input and visualization.
+- **Docker Ready**: One-command deployment with `docker-compose up`.
+
+---
+
 ## 🛠️ Technology Stack
 
-### **Backend Core**
-*   **Language**: Python 3.9+
-*   **Web Frameworks**: 
-    *   **Flask**: Powering the API and main production-grade web server.
-    *   **Streamlit**: Providing an interactive dashboard for rapid prototyping and model metrics visualization.
-*   **Data Science**: Pandas, NumPy (for complex mathematical modeling).
-
-### **Artificial Intelligence & Machine Learning**
-*   **Computer Vision**: Hybrid Deep Learning approach via Hugging Face Inference API.
-    *   **Primary**: `Food-101` fine-tuned model (ResNet/ViT based) for prepared dish detection.
-    *   **Fallback**: `EfficientNet-B0` (ImageNet) for raw ingredient classification.
-*   **Regression Model**: Scikit-Learn `RandomForestRegressor`. This model interprets the detected category + temperature + humidity to output the "Days Remaining".
-
-### **DevOps & Infrastructure**
-*   **Containerization**: Docker & Docker Compose for platform-independent deployment.
-*   **Environment management**: Python-dotenv for secure API token handling.
+- **Backend**: Python, Flask (Production API), Streamlit (Dashboard)
+- **AI/Vision**: Hugging Face Inference API (`Food-101` & `EfficientNet-B0`)
+- **ML/Analytics**: Scikit-Learn (RandomForestRegressor), Pandas, NumPy
+- **Frontend**: HTML5, CSS3 (Glassmorphism), JavaScript
+- **Deployment**: Docker, Docker Compose, Python-dotenv
 
 ---
 
 ## 🔬 Scientific Methodology & "How It Works"
 
-### **1. Image Classification (The "What")**
+### 1. Image Classification (The "What")
 The system uses a **weighted ensemble/hybrid approach**:
-- It first attempts to identify the food using a specialized Food-101 model.
-- If the confidence score is below 70%, it falls back to an EfficientNet-B0 model trained on ImageNet to identify raw ingredients (like a single apple or a bottle of milk).
-- This ensures high accuracy for both cooked meals and raw groceries.
+- **Primary**: Queries `Kaludi/food-category-classification-v2.0` (Food-101 model) - Best for prepared dishes.
+- **Fallback**: If confidence is low, queries `google/efficientnet-b0` (ImageNet) - Best for raw ingredients.
+- **Result**: Returns the highest-confidence match from either model.
 
-### **2. The Q10 Spoilage Model (The "How Long")**
+### 2. The Q10 Spoilage Model (The "How Long")
 Food degradation is a temperature-dependent chemical and biological process. The system implements the **Q10 Temperature Coefficient**:
 
 $$Q_{10} = \left(\frac{R_2}{R_1}\right)^{\frac{10}{T_2 - T_1}}$$
 
-*   **Logic**: For many food items, the rate of spoilage increases by ~2.5x (Q10 factor) for every 10°C increase in temperature.
-*   **Reference**: We use 4°C (Standard Fridge Temp) as our baseline $T_1$. If the user inputs 24°C (Room Temp), the "spoilage rate" is calculated as $2.5^2 = 6.25$, meaning the food spoils 6.25 times faster.
+- **Logic**: For many food items, the rate of spoilage increases by ~2.5x (Q10 factor) for every 10°C increase in temperature.
+- **Reference**: We use 4°C (Standard Fridge Temp) as our baseline.
 
-### **3. Humidity Correction**
-Microbial growth (molds/bacteria) is accelerated by moisture. Our model applies a penalty/bonus factor:
-- **Optimal Humidity**: 55%.
-- **Impact**: Every 10% increase in humidity above the baseline reduces the remaining shelf life by approximately 10%.
+### 3. Humidity Correction
+Microbial growth is accelerated by moisture. Our model applies a penalty/bonus factor where every 10% increase in humidity above 55% reduces the remaining shelf life by approximately 10%.
 
 ---
 
-## 📂 Project Architecture
+## 📊 Supported Foods & Baselines
+
+| Category | Typical Fridge Life | Example Items | Scientific Logic |
+|----------|---------------------|---------------|------------------|
+| **Apple** | 21 days | Whole apples, apple pie | High fiber, low oxidation rate |
+| **Banana** | 5 days | Fresh bananas | High Ethylene production |
+| **Bread** | 7 days | Loaves, toast, bagels | Moisture loss & retrogradation |
+| **Milk** | 7 days | Dairy products | Bacterial lactic acid production |
+| **Pasta** | 4 days | Spaghetti, lasagna, ramen | High water activity |
+| **Pizza** | 4 days | Leftover pizza | Fat oxidation & microbial risk |
+| **Burger** | 3 days | Hamburgers, hot dogs | Processed meat degradation |
+| **Sushi** | 1 day | Sushi, sashimi | Raw fish; high bacterial risk |
+| **Meat** | 4 days | Steak, pork, chicken | Protein degradation |
+| **Fish** | 2 days | Salmon, tuna, seafood | Rapid enzymatic breakdown |
+| **Egg** | 28 days | Eggs, omelettes | Natural protective shell coating |
+| **Vegetable** | 7 days | Salads, fresh veggies | Respiration & transpiration |
+| **Fruit** | 5 days | Berries, cut fruit | Cell wall breakdown |
+| **Rice** | 5 days | Cooked rice, risotto | *Bacillus cereus* risk |
+| **Cake** | 5 days | Cakes, desserts | High sugar stability |
+
+---
+
+## 🚀 Quick Start & Installation
+
+### Option 1: Docker (Recommended)
+
+1. **Clone the repo** and create `.env`:
+   ```bash
+   git clone https://github.com/yourusername/AI-Food-Spoilage-Estimator.git
+   cd AI-Food-Spoilage-Estimator
+   cp .env.example .env
+   # Edit .env and add your Hugging Face token
+   ```
+
+2. **Run with Docker**:
+   ```bash
+   docker-compose up --build
+   ```
+
+3. **Open** [http://localhost:5000](http://localhost:5000)
+
+### Option 2: Local Python
+
+1. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Set environment variable**:
+   ```bash
+   # Windows PowerShell
+   $env:HUGGINGFACE_API_TOKEN = "hf_your_token_here"
+   
+   # Linux/Mac
+   export HUGGINGFACE_API_TOKEN="hf_your_token_here"
+   ```
+
+3. **Run the apps**:
+   - **Flask (Main UI)**: `python app_flask.py`
+   - **Streamlit (Metrics)**: `streamlit run app.py`
+
+---
+
+## ⚙️ Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `HUGGINGFACE_API_TOKEN` | Yes | Get free at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) |
+
+---
+
+## 📂 Project Structure
 
 ```text
 food-spoilage-estimator/
 ├── app_flask.py           # Production-ready Flask server
 ├── app.py                 # Interactive Streamlit dashboard
-├── config.py              # Centralized configuration (Constants, Mappings, API URLs)
-├── models/
-│   ├── classifier.py      # Hybrid AI Vision logic (Hugging Face integration)
-│   └── shelf_life_predictor.py # RandomForest ML Model
-├── utils/
-│   └── data_loader.py     # Research-based synthetic dataset generator
-├── templates/
-│   └── index.html         # Modern Glassmorphism UI (Flask version)
+├── config.py              # Centralized configuration (Constants, Mappings)
 ├── Dockerfile             # Container definition
 ├── docker-compose.yml     # Multi-container orchestration
-└── requirements.txt       # Comprehensive dependency list
+├── requirements.txt       # Python dependencies
+├── .env.example           # Environment template
+├── models/
+│   ├── classifier.py      # Hybrid AI Vision logic (Hugging Face)
+│   └── shelf_life_predictor.py  # RandomForest ML Model
+├── utils/
+│   └── data_loader.py     # Research-based dataset generator
+├── templates/
+│   └── index.html         # Modern Glassmorphism UI
+└── data/                  # Generated training data (gitignored)
 ```
-
----
-
-## 🚀 Deployment Guide
-
-### **Standard Installation**
-1.  **Clone the Repository**:
-    ```bash
-    git clone https://github.com/yourusername/AI-Food-Spoilage-Estimator.git
-    cd AI-Food-Spoilage-Estimator
-    ```
-2.  **Environment Setup**:
-    - Obtain a free API Token from [Hugging Face](https://huggingface.co/settings/tokens).
-    - Create a `.env` file and add: `HUGGINGFACE_API_TOKEN=hf_your_token_here`.
-3.  **Run with Docker (Fastest)**:
-    ```bash
-    docker-compose up --build
-    ```
-    *Access at `http://localhost:5000`*
-
----
-
-## 📊 Supported Food Categories & Baselines
-
-| Category | Typical Fridge Life (Baseline) | Scientific Logic |
-| :--- | :--- | :--- |
-| **Banana** | 5 Days | High Ethylene production, sensitive to oxidation. |
-| **Milk** | 7 Days | Bacterial lactic acid production (Pasteurization limit). |
-| **Meat** | 4 Days | Protein degradation and microbial surface growth. |
-| **Sushi** | 1 Day | Raw fish status (immediately high bacterial risk). |
-| **Egg** | 28 Days | Natural protective shell coating (Cuticle). |
 
 ---
 
 ## 📈 Future Roadmap
 
-*   **IoT Integration**: Connect with DHT11/22 sensors for real-time room temperature and humidity tracking.
-*   **Mobile App (Flutter)**: Develop a mobile version for "point-and-click" grocery management.
-*   **Barcode Scanning**: Integrate OpenFoodFacts API to fetch exact brand-specific ingredients.
-*   **Multi-Item Detection**: Enable YOLOv8/v10 for detecting multiple food items in a single fridge photo.
+*   **IoT Integration**: Connect with real-time temperature/humidity sensors.
+*   **Mobile App**: Develop a Flutter cross-platform mobile application.
+*   **Barcode Scanning**: Fetch brand-specific data via OpenFoodFacts.
+*   **Multi-Item Detection**: Enable YOLOv8 for detecting multiple items in one fridge scan.
 
 ---
 
-## 🤝 Contributors & Academic Context
+## 🤝 References & Context
 
-Created as part of an AI Research project exploring the intersection of **Ecological Sustainability** and **Deep Learning**. 
+Created for educational and research purposes in AI-driven sustainability.
 
-**References:**
-- *USDA FoodKeeper Database (2024)*
-- *Labuza, T.P. (1982). "Shelf Life Dating of Foods"*
-- *EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks (ICML 2019)*
+- **Food-101**: Bossard et al., "Food-101 – Mining Discriminative Components", ECCV 2014
+- **Q10 Coefficient**: Labuza, T.P. (1982). "Shelf Life Dating of Foods"
+- **USDA**: FoodKeeper Application Data (2024)
+
+## 📜 License
+
+MIT License - Free for educational and commercial use.
 
 ---
 
